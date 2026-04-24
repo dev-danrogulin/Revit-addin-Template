@@ -2,7 +2,7 @@
 <RevitAddIns>
   <AddIn Type="Application">
     <Name>RevitAddin.Plugin</Name>
-    <Assembly>C:\Path\To\RevitAddin.Plugin.dll</Assembly>
+    <Assembly>__ASSEMBLY_PATH__</Assembly>
     <FullClassName>RevitAddin.Plugin.PluginApp</FullClassName>
     <ClientId>6F8E2B1C-9D4A-4E7F-B3C2-1A0D5E8F9B4C</ClientId>
     <VendorId>RevitAddinPattern</VendorId>

@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Multi-target: Revit 2022-2024 (net48) and Revit 2025-2026 (net8.0-windows) -->
   <PropertyGroup>
     <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
     <RootNamespace>RevitAddin.Plugin</RootNamespace>
@@ -11,6 +12,7 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <!-- Compilation symbols per host runtime -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
     <DefineConstants>$(DefineConstants);REVIT_HOST_NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
@@ -19,23 +21,26 @@
     <DefineConstants>$(DefineConstants);REVIT_HOST_NET8</DefineConstants>
   </PropertyGroup>
 
+  <!-- Revit API references for Revit 2022-2024 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2024.3.40" />
     <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2024.3.40" />
   </ItemGroup>
 
+  <!-- Revit API references for Revit 2025-2026 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
     <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2026.4.0" />
     <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2026.4.0" />
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- Год ревита передаем при сборке: -p:RevitYear=2024 -->
+    <!-- Pass Revit year during build, for example: -p:RevitYear=2024 -->
     <RevitYear Condition="'$(RevitYear)'==''">unknown</RevitYear>
     <ArtifactsRoot>$(MSBuildProjectDirectory)\..\..\artifacts</ArtifactsRoot>
     <YearOutputDir>$(ArtifactsRoot)\$(RevitYear)</YearOutputDir>
   </PropertyGroup>
 
+  <!-- Copy built plugin binaries to artifacts\<year> -->
   <Target Name="CopyPluginToYearFolder" AfterTargets="Build" Condition="'$(RevitYear)'!='unknown'">
     <Message Text="Copying plugin to $(YearOutputDir)" Importance="high" />
     <MakeDir Directories="$(YearOutputDir)" />
@@ -46,6 +51,43 @@
           DestinationFiles="$(YearOutputDir)\$(AssemblyName).pdb"
           Condition="Exists('$(TargetDir)$(AssemblyName).pdb')"
           SkipUnchangedFiles="true" />
+  </Target>
+
+  <PropertyGroup>
+    <!-- Template and generated .addin paths -->
+    <AddinTemplatePath>$(MSBuildProjectDirectory)\..\..\addin\RevitAddin.Plugin.template.addin</AddinTemplatePath>
+    <GeneratedAddinPath>$(YearOutputDir)\$(AssemblyName).addin</GeneratedAddinPath>
+  </PropertyGroup>
+
+  <!-- Generate year-specific .addin with resolved DLL path -->
+  <Target Name="GenerateYearAddin" AfterTargets="CopyPluginToYearFolder"
+          Condition="'$(RevitYear)'!='unknown' and Exists('$(AddinTemplatePath)')">
+    <ReadLinesFromFile File="$(AddinTemplatePath)">
+      <Output TaskParameter="Lines" ItemName="AddinTemplateLines" />
+    </ReadLinesFromFile>
+
+    <WriteLinesToFile
+      File="$(GeneratedAddinPath)"
+      Lines="@(AddinTemplateLines->Replace('__ASSEMBLY_PATH__','$(YearOutputDir)\$(AssemblyName).dll'))"
+      Overwrite="true"
+      Encoding="UTF-8" />
+
+    <Message Text="Generated addin: $(GeneratedAddinPath)" Importance="high" />
+  </Target>
+
+  <PropertyGroup>
+    <!-- Optional deploy target for current user's Revit Addins folder -->
+    <RevitUserAddinsDir>$(AppData)\Autodesk\Revit\Addins\$(RevitYear)</RevitUserAddinsDir>
+    <DeployToUserAddins Condition="'$(DeployToUserAddins)'==''">false</DeployToUserAddins>
+  </PropertyGroup>
+  <!-- Deploy generated .addin to %AppData%\Autodesk\Revit\Addins\<year> when enabled -->
+  <Target Name="DeployAddinToUserFolder" AfterTargets="GenerateYearAddin"
+          Condition="'$(RevitYear)'!='unknown' and '$(DeployToUserAddins)'=='true'">
+    <MakeDir Directories="$(RevitUserAddinsDir)" />
+    <Copy SourceFiles="$(GeneratedAddinPath)"
+          DestinationFiles="$(RevitUserAddinsDir)\$(AssemblyName).addin"
+          OverwriteReadOnlyFiles="true" />
+    <Message Text="Deployed addin to: $(RevitUserAddinsDir)" Importance="high" />
   </Target>
 
 </Project>
