@@ -28,4 +28,24 @@
     <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2026.4.0" />
     <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2026.4.0" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Год ревита передаем при сборке: -p:RevitYear=2024 -->
+    <RevitYear Condition="'$(RevitYear)'==''">unknown</RevitYear>
+    <ArtifactsRoot>$(MSBuildProjectDirectory)\..\..\artifacts</ArtifactsRoot>
+    <YearOutputDir>$(ArtifactsRoot)\$(RevitYear)</YearOutputDir>
+  </PropertyGroup>
+
+  <Target Name="CopyPluginToYearFolder" AfterTargets="Build" Condition="'$(RevitYear)'!='unknown'">
+    <Message Text="Copying plugin to $(YearOutputDir)" Importance="high" />
+    <MakeDir Directories="$(YearOutputDir)" />
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFiles="$(YearOutputDir)\$(AssemblyName).dll"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).pdb"
+          DestinationFiles="$(YearOutputDir)\$(AssemblyName).pdb"
+          Condition="Exists('$(TargetDir)$(AssemblyName).pdb')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>
