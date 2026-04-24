@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>RevitAddin.Plugin</Name>
+    <Assembly>C:\Path\To\RevitAddin.Plugin.dll</Assembly>
+    <FullClassName>RevitAddin.Plugin.PluginApp</FullClassName>
+    <ClientId>6F8E2B1C-9D4A-4E7F-B3C2-1A0D5E8F9B4C</ClientId>
+    <VendorId>RevitAddinPattern</VendorId>
+    <VendorDescription>Multi-year Revit add-in template (2022-2026)</VendorDescription>
+  </AddIn>
+</RevitAddIns>
