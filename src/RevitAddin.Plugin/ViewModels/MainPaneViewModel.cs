@@ -32,7 +32,7 @@ public sealed class MainPaneViewModel : ViewModelBase {
     }
 
     // Simple demo action to prove command execution + property binding updates.
-    private void Refresh() {
-        StatusText = $"Last refrehs: {DateTime.Now:HH:mm:ss}";
+    private void OnRefresh() {
+        StatusText = $"Last refresh: {DateTime.Now:HH:mm:ss}";
     }
 }
